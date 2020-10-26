@@ -1,5 +1,6 @@
 package junit.tutorial.employee.model;
 
+import junit.tutorial.employee.util.NationalCalendar;
 import lombok.Data;
 
 import java.time.DayOfWeek;
@@ -13,10 +14,10 @@ import static junit.tutorial.employee.util.StringUtil.*;
 @Data
 public class Employee {
 
-    private static final long MAX_OFF_DAYS_PER_YEAR = 32;
+    public static final long MAX_OFF_DAYS_PER_YEAR = 32;
     public static final int MIN_WORKING_DAYS_PER_WEEK = 3;
     public static final double BASE_SALARY = 1000.0;
-    protected static final List<DayOfWeek> DEFAULT_WORKING_DAYS = Arrays.asList(MONDAY, TUESDAY, WEDNESDAY, SATURDAY, SUNDAY);
+    public static final List<DayOfWeek> DEFAULT_WORKING_DAYS = Arrays.asList(MONDAY, TUESDAY, WEDNESDAY, SATURDAY, SUNDAY);
 
     private final String firstName;
     private final String lastName;
@@ -104,7 +105,7 @@ public class Employee {
         if (getTotalOffDaysIn(requestedOffDay.getYear()) >= MAX_OFF_DAYS_PER_YEAR){
             return false;
         }
-        if (!isWorkingDay(requestedOffDay.getDayOfWeek()))
+        if (!isWorkingDay(requestedOffDay.getDayOfWeek()) || NationalCalendar.isPublicHoliday(requestedOffDay))
             return false;
         return offDays.add(requestedOffDay);
     }
