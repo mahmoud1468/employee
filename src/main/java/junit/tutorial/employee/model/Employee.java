@@ -41,7 +41,7 @@ public class Employee {
         this.offDays = new HashSet<>();
     }
 
-    private void setSalary(Double salary) {
+    public void setSalary(Double salary) {
         if (Objects.isNull(salary))
             throw new NullPointerException("Salary could not be null");
         if (salary<=0)
