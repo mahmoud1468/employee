@@ -72,10 +72,10 @@ public class Employee {
     public void setWorkingDays(Collection<DayOfWeek> workingDays){
         validateWorkingDays(workingDays);
         this.workingDays = new HashSet<>(workingDays);
-        fixOffDays();
+        fixOffDaysAfterUpdatingWorkingDays();
     }
 
-    private void fixOffDays() {
+    private void fixOffDaysAfterUpdatingWorkingDays() {
         Set<LocalDate> toBeDeleted = this.offDays.stream()
                 .filter(l -> l.isAfter(LocalDate.now()))
                 .filter(l -> !isWorkingDay(l))
