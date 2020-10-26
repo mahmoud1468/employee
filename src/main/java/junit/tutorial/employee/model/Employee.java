@@ -1,5 +1,6 @@
 package junit.tutorial.employee.model;
 
+import junit.tutorial.employee.exception.UnfairSalaryException;
 import junit.tutorial.employee.util.NationalCalendar;
 import lombok.Data;
 
@@ -43,9 +44,9 @@ public class Employee {
 
     public void setSalary(Double salary) {
         if (Objects.isNull(salary))
-            throw new NullPointerException("Salary could not be null");
-        if (salary<=0)
-            throw new IllegalArgumentException("Salary could not be negative or zero");
+            throw new IllegalArgumentException("Salary could not be null");
+        if (salary<=BASE_SALARY)
+            throw new UnfairSalaryException("Salary could not be less than base salary");
         this.salary = salary;
     }
 
