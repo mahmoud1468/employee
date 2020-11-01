@@ -45,7 +45,7 @@ public class Employee {
     public void setSalary(Double salary) {
         if (Objects.isNull(salary))
             throw new IllegalArgumentException("Salary could not be null");
-        if (salary<=BASE_SALARY)
+        if (salary<BASE_SALARY)
             throw new UnfairSalaryException("Salary could not be less than base salary");
         this.salary = salary;
     }
