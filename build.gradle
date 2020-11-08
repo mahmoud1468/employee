@@ -29,5 +29,13 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform(){
+        includeTags 'unit','integration'
+    }
+    filter {
+        //include all tests from package
+        includeTestsMatching "junit.tutorial.employee.model.*"
+
+        includeTestsMatching "*IntegrationTest*"
+    }
 }
