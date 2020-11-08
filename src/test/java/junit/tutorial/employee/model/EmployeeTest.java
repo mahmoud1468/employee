@@ -1,8 +1,10 @@
 package junit.tutorial.employee.model;
 
+import junit.tutorial.employee.extention.OddDaysExecutionCondition;
 import junit.tutorial.employee.model.util.OffDaysAggregator;
 import junit.tutorial.employee.model.util.WorkingDaysConverter;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.aggregator.AggregateWith;
 import org.junit.jupiter.params.converter.ConvertWith;
@@ -22,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@ExtendWith(OddDaysExecutionCondition.class)
 class EmployeeTest {
 
     private Employee defaultEmployee;
