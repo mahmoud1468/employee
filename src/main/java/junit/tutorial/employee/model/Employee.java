@@ -89,7 +89,7 @@ public class Employee {
             throw new IllegalArgumentException("Working days could not be null!");
         if (workingDays.contains(THURSDAY) || workingDays.contains(FRIDAY))
             throw new IllegalArgumentException("Working days could not contain weekend!");
-        if (workingDays.size()< MIN_WORKING_DAYS_PER_WEEK)
+        if (workingDays.stream().distinct().count() < MIN_WORKING_DAYS_PER_WEEK)
             throw new IllegalArgumentException("Working days should contain more than three days!");
     }
 
