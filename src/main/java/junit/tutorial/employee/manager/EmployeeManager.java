@@ -9,7 +9,7 @@ import junit.tutorial.employee.repository.EmployeeRepository;
 import junit.tutorial.employee.service.NationalIdVerifier;
 import junit.tutorial.employee.service.dto.PersonDTO;
 import junit.tutorial.employee.util.StringUtil;
-import lombok.Setter;
+import lombok.Getter;
 
 import javax.naming.ServiceUnavailableException;
 import java.io.IOException;
@@ -18,20 +18,26 @@ import java.util.Optional;
 
 public class EmployeeManager {
 
+    @Getter
     private EmployeeRepository employeeRepo;
 
+    @Getter
     private NationalIdVerifier nationalIdVerifier;
 
     public EmployeeManager(EmployeeRepository employeeRepository, NationalIdVerifier nationalIdVerifier){
         this.employeeRepo = employeeRepository;
         this.nationalIdVerifier = nationalIdVerifier;
+        System.out.println("using constructor with two args");
     }
 
     public EmployeeManager(){
+        System.out.println("using constructor with zero arg");
     }
 
     public EmployeeManager(EmployeeRepository employeeRepository){
         this.employeeRepo = employeeRepository;
+        System.out.println("using constructor with one arg");
+
     }
 
     public boolean addNewEmployee(EmployeeDTO employeeDTO) throws IOException {
