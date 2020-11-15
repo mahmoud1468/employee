@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,7 @@ public class Employee {
     private Double salary;
     private Set<DayOfWeek> workingDays;
     private Set<LocalDate> offDays;
+    private LocalDateTime creationTime;
 
     public Employee(String nationalId, String firstName, String lastName) {
         this(nationalId, firstName, lastName, BASE_SALARY);
@@ -40,6 +42,7 @@ public class Employee {
         setSalary(salary);
         setDefaultWorkingDays();
         this.offDays = new HashSet<>();
+        creationTime = LocalDateTime.now();
     }
 
     public void setSalary(Double salary) {
@@ -89,6 +92,8 @@ public class Employee {
             throw new IllegalArgumentException("Working days could not be null!");
         if (workingDays.contains(THURSDAY) || workingDays.contains(FRIDAY))
             throw new IllegalArgumentException("Working days could not contain weekend!");
+        if (workingDays.contains(null))
+            throw new IllegalArgumentException("Working days could not contain null value");
         if (workingDays.stream().distinct().count() < MIN_WORKING_DAYS_PER_WEEK)
             throw new IllegalArgumentException("Working days should contain more than three days!");
     }

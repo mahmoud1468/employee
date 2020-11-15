@@ -7,6 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.util.stream.Stream;
 
@@ -14,6 +16,7 @@ import static junit.tutorial.employee.util.StringUtil.isName;
 import static junit.tutorial.employee.util.StringUtil.isNationalId;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 class StringUtilTest {
 
@@ -56,5 +59,15 @@ class StringUtilTest {
         assertFalse(isNationalId("0017440702"));
         assertFalse(isNationalId("5300020784"));
         assertFalse(isNationalId("5300020783"));
+    }
+
+    @Test
+    void isNationalId_WHEN_mocked() {
+        try(MockedStatic<StringUtil> mockedStatic = Mockito.mockStatic(StringUtil.class);) {
+            mockedStatic.when(()->StringUtil.isNationalId("123")).thenReturn(true);
+            Mockito.when(StringUtil.isNationalId("123")).thenReturn(true); // this is the same as above line
+            assertTrue(isNationalId("123"));
+            mockedStatic.verify(times(1), ()->StringUtil.isNationalId("123"));
+        }
     }
 }

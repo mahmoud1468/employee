@@ -3,6 +3,7 @@ package junit.tutorial.employee.manager;
 import junit.tutorial.employee.exception.IllegalNationalIdException;
 import junit.tutorial.employee.exception.MisMatchingIdentityException;
 import junit.tutorial.employee.manager.dto.EmployeeDTO;
+import junit.tutorial.employee.manager.util.MyAnswer;
 import junit.tutorial.employee.model.Employee;
 import junit.tutorial.employee.repository.EmployeeRepository;
 import junit.tutorial.employee.service.NationalIdVerifier;
@@ -16,6 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.naming.ServiceUnavailableException;
 
+import java.io.IOException;
+import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,6 +36,7 @@ class EmployeeManagerTest {
     NationalIdVerifier mockedNationalIdVerifier;
 
     @InjectMocks
+    @Spy
     EmployeeManager manager;
 
     @Captor
@@ -41,6 +46,26 @@ class EmployeeManagerTest {
 
     @Captor
     private ArgumentCaptor<Employee> employeeCaptor;
+
+    private void assertEmployeeEqualsToDTO(Employee employee, EmployeeDTO dto) {
+        assertThat(employee)
+                .usingRecursiveComparison()
+                .ignoringFields("workingDays", "offDays", "creationTime")
+                .isEqualTo(dto);
+    }
+
+    private void verifyInteractionsForAddNewEmployeeWhenSuccessful() throws IOException {
+        InOrder inOrder1 = Mockito.inOrder(mockedNationalIdVerifier);
+        InOrder inOrder2 = Mockito.inOrder(mockedRepository);
+        inOrder2.verify(mockedRepository).findByNationalId("0010010017");
+        inOrder2.verify(mockedRepository).save(employeeCaptor.capture());
+        inOrder1.verifyNoMoreInteractions();
+        inOrder2.verifyNoMoreInteractions();
+    }
+
+    private MockedConstruction<Employee> mockEmployeeConstructionWithCustomAnswer() {
+        return mockConstruction(Employee.class, withSettings().defaultAnswer(new MyAnswer()));
+    }
 
     @BeforeEach
     private void createDefaultEmployeeDTO() {
@@ -57,7 +82,7 @@ class EmployeeManagerTest {
     @Test
     void verifyEmployeeIdentity_WHEN_serviceIsUnavailable_THEN_throwsInternalError() {
 
-        Mockito.doThrow(ServiceUnavailableException.class)
+        doThrow(ServiceUnavailableException.class)
                 .doThrow(IllegalNationalIdException.class)
                 .when(mockedNationalIdVerifier).verify(anyString());
 
@@ -74,8 +99,8 @@ class EmployeeManagerTest {
     void verifyEmployeeIdentity_WHEN_firstNamesMisMatch_THEN_throwsMisMatchingIdentityException(){
 
         PersonDTO person = new PersonDTO("0010010017", "modir", "john", null);
-        Mockito.doReturn(person).when(mockedNationalIdVerifier).verify(anyString());
-        Mockito.when(mockedNationalIdVerifier.verify("0010010017")).thenReturn(person);
+        doReturn(person).when(mockedNationalIdVerifier).verify(anyString());
+        when(mockedNationalIdVerifier.verify("0010010017")).thenReturn(person);
 
         EmployeeDTO dto = new EmployeeDTO("0010010017", "modir", "jan", 2000.0);
         assertThrows(MisMatchingIdentityException.class, ()->manager.verifyEmployeeIdentity(dto));
@@ -85,23 +110,53 @@ class EmployeeManagerTest {
     @Test
     void addNewEmployee_WHEN_successful_THEN_returnTrue() {
 
-        PersonDTO person = new PersonDTO("0010010017", "modir", "john", null);
-        Mockito.doReturn(person).when(mockedNationalIdVerifier).verify(anyString());
+            doNothing().when(manager).verifyEmployeeIdentity(any());
+            doReturn(Optional.empty()).when(mockedRepository).findByNationalId(anyString()); //can remove (default answer)
+            doNothing().when(mockedRepository).save(any(Employee.class)); //can remove (default behaviour)
 
-        Mockito.doReturn(Optional.empty()).when(mockedRepository).findByNationalId(anyString());
-        Mockito.doNothing().when(mockedRepository).save(any(Employee.class));
+            boolean result = manager.addNewEmployee(defaultEmployeeDto);
 
-        assertTrue(manager.addNewEmployee(defaultEmployeeDto));
+            assertTrue(result);
+            verifyInteractionsForAddNewEmployeeWhenSuccessful();
+            assertEmployeeEqualsToDTO(employeeCaptor.getValue(), defaultEmployeeDto);
 
-        InOrder inOrder1 = Mockito.inOrder(mockedNationalIdVerifier);
-        InOrder inOrder2 = Mockito.inOrder(mockedRepository);
-        inOrder1.verify(mockedNationalIdVerifier).verify(anyString());
-        inOrder2.verify(mockedRepository).findByNationalId("0010010017");
-        inOrder2.verify(mockedRepository).save(employeeCaptor.capture());
-        inOrder1.verifyNoMoreInteractions();
-        inOrder2.verifyNoMoreInteractions();
+    }
 
-        Employee expectedEmp = new Employee("0010010017", "modir", "john", 2000.0);
-        assertEquals(expectedEmp, employeeCaptor.getValue());
+    @SneakyThrows
+    @Test
+    void mockNewlyConstructedObjects() {
+
+        try(MockedConstruction<Employee> employeeMockedConstruction = mockConstruction(Employee.class)) {
+
+            doNothing().when(manager).verifyEmployeeIdentity(any());
+            doReturn(Optional.empty()).when(mockedRepository).findByNationalId(anyString());
+            doNothing().when(mockedRepository).save(any(Employee.class));
+
+            boolean result = manager.addNewEmployee(defaultEmployeeDto);
+
+            assertTrue(result);
+            verifyInteractionsForAddNewEmployeeWhenSuccessful();
+            List<Employee> constructedEmployees = employeeMockedConstruction.constructed();
+            assertEquals(1, constructedEmployees.size());
+        }
+    }
+
+    @SneakyThrows
+    @Test
+    void mockWithCustomAnswers (){
+
+        try(MockedConstruction<Employee> employeeMockedConstruction = mockEmployeeConstructionWithCustomAnswer()) {
+
+            doNothing().when(manager).verifyEmployeeIdentity(any());
+            doReturn(Optional.empty()).when(mockedRepository).findByNationalId(anyString());
+            doAnswer(invocation -> {
+                Thread.sleep(1000);
+                return null;
+            }).when(mockedRepository).save(any());
+
+            assertTimeout(Duration.ofMillis(3000), ()->manager.addNewEmployee(defaultEmployeeDto));
+
+        }
+
     }
 }
